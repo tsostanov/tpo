@@ -36,21 +36,23 @@ class Scene:
         self.scaffold_window: Optional[str] = None
         self.target_window: Optional[str] = None
 
-    def crowd_cheers(self) -> bool:
+    def crowd_cheers(self) -> None:
         if self.crowd_state == CrowdState.CHEERING:
-            return False
+            return
         self.crowd_state = CrowdState.CHEERING
-        return True
 
-    def start_oration(self) -> bool:
+    def start_oration(self) -> None:
+        if self.scaffold_window is None:
+            raise ValueError("no scaffold for oration")
         if self.orator_state == OratorState.ADDRESSING:
-            return False
+            return
         self.orator_state = OratorState.ADDRESSING
-        return True
 
     def place_scaffold(self, window_name: str) -> None:
         if window_name not in self.windows:
             raise KeyError("unknown window")
+        if self.windows[window_name].floor != 2:
+            raise ValueError("scaffold must be at a second-floor window")
         self.scaffold_window = window_name
 
     def arthur_glides_to(self, window_name: str) -> None:
@@ -68,6 +70,8 @@ class Scene:
     def arthur_reaches_window(self) -> None:
         if self.arthur_state != ArthurState.GLIDING:
             raise ValueError("arthur is not gliding")
+        if self.target_window is None:
+            raise ValueError("no target window")
         self.arthur_state = ArthurState.AT_WINDOW
 
 
