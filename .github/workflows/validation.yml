@@ -1,0 +1,45 @@
+name: Validation
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+  workflow_dispatch:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: pip
+          cache-dependency-path: requirements.txt
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Black
+        run: black --check .
+
+      - name: Flake8
+        if: ${{ always() }}
+        run: flake8 .
+
+      - name: Pylint
+        if: ${{ always() }}
+        run: pylint $(git ls-files '*.py')
+
+      - name: Pytest + coverage
+        if: ${{ always() }}
+        run: coverage run --rcfile=.coveragerc -m pytest -q
+
+      - name: Coverage report
+        if: ${{ always() }}
+        run: coverage report -m --fail-under=70
