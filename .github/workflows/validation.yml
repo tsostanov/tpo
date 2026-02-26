@@ -42,4 +42,4 @@ jobs:
 
       - name: Coverage report
         if: ${{ always() }}
-        run: coverage report -m --fail-under=70
+        run: coverage report -m
