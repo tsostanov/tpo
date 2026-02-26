@@ -13,15 +13,13 @@ def _series_coefficient(n: int) -> float:
 def test_series_terms_match_coefficients() -> None:
     x = 0.5
     terms = _arcsin_series_terms(x, 4)
-    expected = [
-        _series_coefficient(n) * x ** (2 * n + 1) for n in range(len(terms))
-    ]
+    expected = [_series_coefficient(n) * x ** (2 * n + 1) for n in range(len(terms))]
     for term, exp in zip(terms, expected):
         assert math.isclose(term, exp, rel_tol=0.0, abs_tol=1e-15)
 
 
 def test_series_terms_count_zero() -> None:
-    assert _arcsin_series_terms(0.25, 0) == []
+    assert not _arcsin_series_terms(0.25, 0)
 
 
 def test_series_terms_negative_count() -> None:
