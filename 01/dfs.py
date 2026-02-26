@@ -1,7 +1,8 @@
 from __future__ import annotations
 
+from dataclasses import dataclass
 from enum import Enum, auto
-from typing import Dict, Iterable, List, MutableSequence, Set, TypeVar
+from typing import Dict, Iterable, List, MutableSequence, Set, TypeVar, Generic
 
 T = TypeVar("T")
 
@@ -16,11 +17,18 @@ class Step(Enum):
     FINISH = auto()
 
 
+@dataclass(frozen=True)
+class Event(Generic[T]):
+    step: Step
+    vertex: T | None = None
+    neighbor: T | None = None
+
+
 Graph = Dict[T, Iterable[T]]
 
 
 def dfs(
-    graph: Graph[T], start: T, trace: MutableSequence[Step] | None = None
+    graph: Graph[T], start: T, trace: MutableSequence[Event[T]] | None = None
 ) -> List[T]:
     if trace is None:
         trace = []
@@ -28,27 +36,35 @@ def dfs(
     order: List[T] = []
     visited: Set[T] = set()
 
-    trace.append(Step.START)
+    trace.append(Event(Step.START, vertex=start))
 
     def visit(vertex: T) -> None:
-        trace.append(Step.ENTER)
+        trace.append(Event(Step.ENTER, vertex=vertex))
         visited.add(vertex)
         order.append(vertex)
 
-        for neighbor in graph.get(vertex, []):
-            trace.append(Step.CHECK_NEIGHBOR)
+        neighbors_iter = graph.get(vertex, [])
+        neighbors = list(neighbors_iter)
+        if not isinstance(neighbors_iter, (list, tuple)):
+            try:
+                neighbors.sort()
+            except TypeError:
+                pass
+
+        for neighbor in neighbors:
+            trace.append(Event(Step.CHECK_NEIGHBOR, vertex=vertex, neighbor=neighbor))
             if neighbor in visited:
-                trace.append(Step.SKIP_VISITED)
+                trace.append(Event(Step.SKIP_VISITED, vertex=vertex, neighbor=neighbor))
                 continue
-            trace.append(Step.VISIT_NEIGHBOR)
+            trace.append(Event(Step.VISIT_NEIGHBOR, vertex=vertex, neighbor=neighbor))
             visit(neighbor)
 
-        trace.append(Step.EXIT)
+        trace.append(Event(Step.EXIT, vertex=vertex))
 
     visit(start)
-    trace.append(Step.FINISH)
+    trace.append(Event(Step.FINISH, vertex=start))
 
     return order
 
 
-__all__ = ["Step", "dfs"]
+__all__ = ["Event", "Step", "dfs"]
