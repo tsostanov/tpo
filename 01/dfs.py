@@ -43,13 +43,13 @@ def dfs(
         visited.add(vertex)
         order.append(vertex)
 
-        neighbors_iter = graph.get(vertex, [])
-        neighbors = list(neighbors_iter)
-        if not isinstance(neighbors_iter, (list, tuple)):
-            try:
-                neighbors.sort()
-            except TypeError:
-                pass
+        neighbors = list(graph.get(vertex, []))
+        try:
+            neighbors.sort()
+        except TypeError as err:
+            raise TypeError(
+                "all neighbor vertices must be mutually comparable for deterministic traversal"
+            ) from err
 
         for neighbor in neighbors:
             trace.append(Event(Step.CHECK_NEIGHBOR, vertex=vertex, neighbor=neighbor))

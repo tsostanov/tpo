@@ -98,12 +98,36 @@ def test_reach_without_glide() -> None:
         scene.arthur_reaches_window()
 
 
-def test_reach_without_target_window() -> None:
+def test_reach_without_target_window_in_gliding_state() -> None:
     scene = _scene()
-    scene.arthur_state = ArthurState.GLIDING
+    scene.place_scaffold("north")
+    scene.start_oration()
+    scene.arthur_glides_to("north")
     scene.target_window = None
+
     with pytest.raises(ValueError):
         scene.arthur_reaches_window()
+
+
+def test_reach_cannot_be_repeated() -> None:
+    scene = _scene()
+    scene.place_scaffold("north")
+    scene.start_oration()
+    scene.arthur_glides_to("north")
+    scene.arthur_reaches_window()
+
+    with pytest.raises(ValueError):
+        scene.arthur_reaches_window()
+
+
+def test_target_window_is_preserved_after_reach() -> None:
+    scene = _scene()
+    scene.place_scaffold("north")
+    scene.start_oration()
+    scene.arthur_glides_to("north")
+    scene.arthur_reaches_window()
+
+    assert scene.target_window == "north"
 
 
 def test_states_enums() -> None:

@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import pytest
+
 from dfs import Event, Step, dfs
 
 
@@ -41,32 +43,48 @@ def test_dfs_trace_and_order() -> None:
             assert next_event.vertex == event.neighbor
 
 
+def test_dfs_exact_trace() -> None:
+    graph = {"A": ["B"], "B": ["A"]}
+    trace: list[Event[str]] = []
+
+    order = dfs(graph, "A", trace)
+
+    assert order == ["A", "B"]
+    assert trace == [
+        Event(Step.START, vertex="A"),
+        Event(Step.ENTER, vertex="A"),
+        Event(Step.CHECK_NEIGHBOR, vertex="A", neighbor="B"),
+        Event(Step.VISIT_NEIGHBOR, vertex="A", neighbor="B"),
+        Event(Step.ENTER, vertex="B"),
+        Event(Step.CHECK_NEIGHBOR, vertex="B", neighbor="A"),
+        Event(Step.SKIP_VISITED, vertex="B", neighbor="A"),
+        Event(Step.EXIT, vertex="B"),
+        Event(Step.EXIT, vertex="A"),
+        Event(Step.FINISH, vertex="A"),
+    ]
+
+
 def test_dfs_without_trace() -> None:
     order = dfs({}, "Z")
     assert order == ["Z"]
 
 
-def test_dfs_sorts_unordered_neighbors() -> None:
+def test_dfs_sorts_neighbors_deterministically() -> None:
+    graph = {"A": ["C", "B"], "B": [], "C": []}
+    order = dfs(graph, "A")
+    assert order == ["A", "B", "C"]
+
+
+def test_dfs_sorts_set_neighbors() -> None:
     graph = {"A": {"C", "B"}, "B": [], "C": []}
     order = dfs(graph, "A")
     assert order == ["A", "B", "C"]
 
 
-class _FixedIterable:
-    def __init__(self, items: list[object]):
-        self._items = items
-
-    def __iter__(self):
-        return iter(self._items)
-
-
-def test_dfs_unsortable_neighbors_keeps_order() -> None:
+def test_dfs_unsortable_neighbors_raise_error() -> None:
     first = object()
     second = object()
-    graph = {"A": _FixedIterable([first, second]), first: [], second: []}
+    graph = {"A": [first, second], first: [], second: []}
 
-    order = dfs(graph, "A")
-
-    assert order[0] == "A"
-    assert order[1] is first
-    assert order[2] is second
+    with pytest.raises(TypeError):
+        dfs(graph, "A")

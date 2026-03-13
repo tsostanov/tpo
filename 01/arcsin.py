@@ -32,18 +32,18 @@ def _arcsin_series_sum(x: float, eps: float, max_terms: int) -> float:
         raise ValueError("max_terms must be positive")
 
     term = x
-    total = term
+    total = 0.0
     n = 0
-    while abs(term) > eps and n < max_terms:
+    while n < max_terms:
+        total += term
+        if abs(term) <= eps:
+            return total
+
         ratio = ((2 * n + 1) ** 2) / (2 * (n + 1) * (2 * n + 3))
         term *= ratio * x * x
-        total += term
         n += 1
 
-    if n >= max_terms:
-        raise RuntimeError("series did not converge within max_terms")
-
-    return total
+    raise RuntimeError("series did not converge within max_terms")
 
 
 def arcsin(
