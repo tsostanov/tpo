@@ -48,7 +48,8 @@ def dfs(
             neighbors.sort()
         except TypeError as err:
             raise TypeError(
-                "all neighbor vertices must be mutually comparable for deterministic traversal"
+                "all neighbor vertices must be mutually comparable "
+                "for deterministic traversal"
             ) from err
 
         for neighbor in neighbors:
