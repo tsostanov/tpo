@@ -69,6 +69,20 @@ def test_dfs_without_trace() -> None:
     assert order == ["Z"]
 
 
+def test_dfs_missing_start_vertex_still_records_trace() -> None:
+    trace: list[Event[str]] = []
+
+    order = dfs({}, "Z", trace)
+
+    assert order == ["Z"]
+    assert trace == [
+        Event(Step.START, vertex="Z"),
+        Event(Step.ENTER, vertex="Z"),
+        Event(Step.EXIT, vertex="Z"),
+        Event(Step.FINISH, vertex="Z"),
+    ]
+
+
 def test_dfs_sorts_neighbors_deterministically() -> None:
     graph = {"A": ["C", "B"], "B": [], "C": []}
     order = dfs(graph, "A")
@@ -86,5 +100,26 @@ def test_dfs_unsortable_neighbors_raise_error() -> None:
     second = object()
     graph = {"A": [first, second], first: [], second: []}
 
-    with pytest.raises(TypeError):
+    with pytest.raises(
+        TypeError,
+        match="all neighbor vertices must be mutually comparable "
+        "for deterministic traversal",
+    ):
         dfs(graph, "A")
+
+
+def test_dfs_self_loop_is_skipped_after_visit() -> None:
+    graph = {"A": ["A"]}
+    trace: list[Event[str]] = []
+
+    order = dfs(graph, "A", trace)
+
+    assert order == ["A"]
+    assert trace == [
+        Event(Step.START, vertex="A"),
+        Event(Step.ENTER, vertex="A"),
+        Event(Step.CHECK_NEIGHBOR, vertex="A", neighbor="A"),
+        Event(Step.SKIP_VISITED, vertex="A", neighbor="A"),
+        Event(Step.EXIT, vertex="A"),
+        Event(Step.FINISH, vertex="A"),
+    ]
