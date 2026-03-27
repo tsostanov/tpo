@@ -1,0 +1,67 @@
+@startuml
+skinparam classAttributeIconSize 0
+
+enum CrowdState {
+  CALM
+  CHEERING
+}
+
+enum OratorState {
+  SILENT
+  ADDRESSING
+}
+
+enum ArthurState {
+  STANDING
+  GLIDING
+  AT_WINDOW
+}
+
+class Window {
+  +name: str
+  +floor: int
+}
+
+class Crowd {
+  +state: CrowdState
+}
+
+class Orator {
+  +state: OratorState
+}
+
+class Arthur {
+  +state: ArthurState
+  +target_window: str?
+}
+
+class Scaffold {
+  +window_name: str
+}
+
+class Scene {
+  -windows: Dict[str, Window]
+  -crowd: Crowd
+  -orator: Orator
+  -arthur: Arthur
+  -scaffold: Scaffold?
+  +crowd_cheers(): None
+  +start_oration(): None
+  +place_scaffold(window_name: str): None
+  +arthur_glides_to(window_name: str): None
+  +arthur_reaches_window(): None
+}
+
+Scene "1" o-- "*" Window : windows
+Scene "1" *-- "1" Crowd
+Scene "1" *-- "1" Orator
+Scene "1" *-- "1" Arthur
+Scene "1" o-- "0..1" Scaffold
+
+Crowd --> CrowdState
+Orator --> OratorState
+Arthur --> ArthurState
+Scaffold --> Window : installed_at
+Arthur --> Window : target
+
+@enduml

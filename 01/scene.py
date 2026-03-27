@@ -30,9 +30,9 @@ class Window:
 class Scene:
     def __init__(self, windows: Iterable[Window]):
         self.windows: Dict[str, Window] = {window.name: window for window in windows}
-        self.crowd_state = CrowdState.CALM
-        self.orator_state = OratorState.SILENT
-        self.arthur_state = ArthurState.STANDING
+        self.crowd_state: CrowdState = CrowdState.CALM
+        self.orator_state: OratorState = OratorState.SILENT
+        self.arthur_state: ArthurState = ArthurState.STANDING
         self.scaffold_window: Optional[str] = None
         self.target_window: Optional[str] = None
 

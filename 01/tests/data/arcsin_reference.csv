@@ -1,0 +1,11 @@
+group,case_id,x,expected
+match,zero,0.0,0.0
+match,two-tenths,0.2,0.201357920790330797
+match,half,0.5,0.523598775598298927
+match,near-one,0.9,1.119769514998634197
+threshold,left-of-negative-threshold,-0.700000000001,-0.775397496612153403
+threshold,negative-threshold,-0.7,-0.775397496610752968
+threshold,right-of-negative-threshold,-0.699999999999,-0.775397496609352754
+threshold,left-of-threshold,0.699999999999,0.775397496609352754
+threshold,threshold,0.7,0.775397496610752968
+threshold,right-of-threshold,0.700000000001,0.775397496612153403

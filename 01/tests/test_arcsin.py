@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import csv
 import math
 
 import pytest
@@ -12,22 +13,38 @@ from arcsin import (
     arcsin,
 )
 
+REFERENCE_CASES_PATH = (
+    __file__.replace("\\", "/").rsplit("/", 1)[0] + "/data/arcsin_reference.csv"
+)
+
 
 def _series_coefficient(n: int) -> float:
     return math.factorial(2 * n) / (4**n * math.factorial(n) ** 2 * (2 * n + 1))
+
+
+def _reference_cases(group: str) -> list[pytest.ParameterSet]:
+    with open(REFERENCE_CASES_PATH, newline="", encoding="utf-8") as reference_file:
+        reader = csv.DictReader(reference_file)
+        return [
+            pytest.param(float(row["x"]), float(row["expected"]), id=row["case_id"])
+            for row in reader
+            if row["group"] == group
+        ]
 
 
 class TestArcsinSeriesInternals:
     def test_series_terms_match_coefficients(self) -> None:
         x = 0.5
         terms = _arcsin_series_terms(x, 4)
-        expected = [_series_coefficient(n) * x ** (2 * n + 1) for n in range(len(terms))]
+        expected = [
+            _series_coefficient(n) * x ** (2 * n + 1) for n in range(len(terms))
+        ]
 
         for term, exp in zip(terms, expected):
             assert term == pytest.approx(exp, abs=1e-15)
 
     def test_series_terms_count_zero(self) -> None:
-        assert _arcsin_series_terms(0.25, 0) == []
+        assert not _arcsin_series_terms(0.25, 0)
 
     @pytest.mark.parametrize(
         "count",
@@ -65,7 +82,9 @@ class TestArcsinSeriesInternals:
             _arcsin_series_sum(0.1, 1e-8, max_terms)
 
     def test_series_sum_no_convergence(self) -> None:
-        with pytest.raises(RuntimeError, match="series did not converge within max_terms"):
+        with pytest.raises(
+            RuntimeError, match="series did not converge within max_terms"
+        ):
             _arcsin_series_sum(0.5, 1e-20, 1)
 
 
@@ -89,18 +108,12 @@ class TestArcsinSymmetryAndKnownValues:
         x = sign * base
         assert arcsin(x) == pytest.approx(sign * expected, abs=1e-10)
 
-    @pytest.mark.parametrize(
-        "base",
-        [
-            pytest.param(0.0, id="zero"),
-            pytest.param(0.2, id="two-tenths"),
-            pytest.param(0.5, id="half"),
-            pytest.param(0.9, id="near-one"),
-        ],
-    )
-    def test_matches_math_asin(self, sign: float, base: float) -> None:
+    @pytest.mark.parametrize("base, expected", _reference_cases("match"))
+    def test_matches_reference_data(
+        self, sign: float, base: float, expected: float
+    ) -> None:
         x = sign * base
-        assert arcsin(x, eps=1e-12) == pytest.approx(math.asin(x), abs=1e-10)
+        assert arcsin(x, eps=1e-12) == pytest.approx(sign * expected, abs=1e-10)
 
     @pytest.mark.parametrize(
         "base",
@@ -166,19 +179,9 @@ class TestArcsinNearBounds:
         result = arcsin(x, eps=1e-12)
         assert math.sin(result) == pytest.approx(x, abs=1e-8)
 
-    @pytest.mark.parametrize(
-        "x",
-        [
-            pytest.param(-TRANSFORM_THRESHOLD - 1e-12, id="left-of-negative-threshold"),
-            pytest.param(-TRANSFORM_THRESHOLD, id="negative-threshold"),
-            pytest.param(-TRANSFORM_THRESHOLD + 1e-12, id="right-of-negative-threshold"),
-            pytest.param(TRANSFORM_THRESHOLD - 1e-12, id="left-of-threshold"),
-            pytest.param(TRANSFORM_THRESHOLD, id="threshold"),
-            pytest.param(TRANSFORM_THRESHOLD + 1e-12, id="right-of-threshold"),
-        ],
-    )
-    def test_threshold_boundary_values(self, x: float) -> None:
-        assert arcsin(x) == pytest.approx(math.asin(x), abs=1e-10)
+    @pytest.mark.parametrize("x, expected", _reference_cases("threshold"))
+    def test_threshold_boundary_values(self, x: float, expected: float) -> None:
+        assert arcsin(x) == pytest.approx(expected, abs=1e-10)
 
     def test_threshold_switching_rule(self, monkeypatch: pytest.MonkeyPatch) -> None:
         calls: list[float] = []

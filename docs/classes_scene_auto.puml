@@ -1,0 +1,33 @@
+@startuml classes_scene_auto
+set namespaceSeparator none
+class "ArthurState" as scene.ArthurState {
+  name
+}
+class "CrowdState" as scene.CrowdState {
+  name
+}
+class "OratorState" as scene.OratorState {
+  name
+}
+class "Scene" as scene.Scene {
+  arthur_state : AT_WINDOW, GLIDING
+  crowd_state : CHEERING
+  orator_state : ADDRESSING
+  scaffold_window : Optional[str]
+  target_window : Optional[str]
+  windows : Dict[str, Window]
+  arthur_glides_to(window_name: str) -> None
+  arthur_reaches_window() -> None
+  crowd_cheers() -> None
+  place_scaffold(window_name: str) -> None
+  start_oration() -> None
+}
+class "Window" as scene.Window {
+  floor : int
+  name : str
+}
+scene.Scene --> scene.ArthurState : arthur_state
+scene.Scene --> scene.CrowdState : crowd_state
+scene.Scene --> scene.OratorState : orator_state
+scene.Window --o scene.Scene : windows
+@enduml
