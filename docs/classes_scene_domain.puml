@@ -1,17 +1,25 @@
 @startuml classes_scene_domain
 set namespaceSeparator none
 class "Arthur" as scene.Arthur {
+  distance_to_target : Optional[float]
   feels_fear : bool
+  has_reached_window : bool
   state
-  target_window : Optional[str]
+  target_window : Optional[Window]
   understands_projection : bool
-  approach_window() -> None
-  begin_glide(target_window: str) -> None
+  begin_glide(target_window: Window, distance_to_target: float) -> None
+  move_closer(distance: float) -> None
   pass_through_glass() -> None
   realize_projection(room: Room) -> None
 }
 class "ArthurState" as scene.ArthurState {
   name
+}
+class "Building" as scene.Building {
+  room
+  windows : tuple[Window, ...]
+  from_windows(windows: Iterable[Window], room: Room | None) -> Building
+  require_window(window: Window) -> Window
 }
 class "Crowd" as scene.Crowd {
   state
@@ -22,15 +30,21 @@ class "CrowdState" as scene.CrowdState {
   name
 }
 class "Orator" as scene.Orator {
+  position
   state
+  climb_podium(podium: Podium | None) -> None
   continue_addressing(crowd: Crowd) -> None
-  start(podium: Podium | None) -> None
+  start() -> None
+  step_down() -> None
+}
+class "OratorPosition" as scene.OratorPosition {
+  name
 }
 class "OratorState" as scene.OratorState {
   name
 }
 class "Podium" as scene.Podium {
-  window_name : str
+  window
 }
 class "Room" as scene.Room {
   is_projection : bool
@@ -39,35 +53,43 @@ class "Room" as scene.Room {
 class "Scene" as scene.Scene {
   arthur
   arthur_state : ArthurState
+  building
   crowd
   crowd_state : CrowdState
+  distance_to_target : Optional[float]
+  has_reached_window : bool
   orator
+  orator_position : OratorPosition
   orator_state : OratorState
   podium : Podium | None
-  room
-  target_window : Optional[str]
-  windows : Dict[str, Window]
-  arthur_approaches_window() -> None
-  arthur_glides_to(window_name: str) -> None
+  room : Room
+  target_window : Optional[Window]
+  windows : tuple[Window, ...]
+  arthur_glides_to(window: Window, distance_to_target: float) -> None
+  arthur_moves_closer(distance: float) -> None
   arthur_passes_through_glass() -> None
   arthur_realizes_projection() -> None
   continue_oration() -> None
   crowd_cheers() -> None
   crowd_shouts_hurrah() -> None
-  place_podium(window_name: str) -> None
+  orator_climbs_podium() -> None
+  orator_steps_down() -> None
+  place_podium(window: Window) -> None
   start_oration() -> None
 }
 class "Window" as scene.Window {
+  direction : str
   floor : int
-  name : str
 }
 scene.Arthur --> scene.ArthurState : state
 scene.Crowd --> scene.CrowdState : state
+scene.Orator --> scene.OratorPosition : position
 scene.Orator --> scene.OratorState : state
-scene.Scene --> scene.Room : room
+scene.Building --> scene.Room : room
+scene.Podium --> scene.Window : window
 scene.Arthur --* scene.Scene : arthur
 scene.Crowd --* scene.Scene : crowd
 scene.Orator --* scene.Scene : orator
 scene.Podium --* scene.Scene : podium
-scene.Window --o scene.Scene : windows
+scene.Building --o scene.Scene : building
 @enduml
