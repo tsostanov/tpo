@@ -1,0 +1,73 @@
+@startuml classes_scene_domain
+set namespaceSeparator none
+class "Arthur" as scene.Arthur {
+  feels_fear : bool
+  state
+  target_window : Optional[str]
+  understands_projection : bool
+  approach_window() -> None
+  begin_glide(target_window: str) -> None
+  pass_through_glass() -> None
+  realize_projection(room: Room) -> None
+}
+class "ArthurState" as scene.ArthurState {
+  name
+}
+class "Crowd" as scene.Crowd {
+  state
+  cheer() -> None
+  shout_hurrah() -> None
+}
+class "CrowdState" as scene.CrowdState {
+  name
+}
+class "Orator" as scene.Orator {
+  state
+  continue_addressing(crowd: Crowd) -> None
+  start(podium: Podium | None) -> None
+}
+class "OratorState" as scene.OratorState {
+  name
+}
+class "Podium" as scene.Podium {
+  window_name : str
+}
+class "Room" as scene.Room {
+  is_projection : bool
+  reacts_to_intrusion() -> bool
+}
+class "Scene" as scene.Scene {
+  arthur
+  arthur_state : ArthurState
+  crowd
+  crowd_state : CrowdState
+  orator
+  orator_state : OratorState
+  podium : Podium | None
+  room
+  target_window : Optional[str]
+  windows : Dict[str, Window]
+  arthur_approaches_window() -> None
+  arthur_glides_to(window_name: str) -> None
+  arthur_passes_through_glass() -> None
+  arthur_realizes_projection() -> None
+  continue_oration() -> None
+  crowd_cheers() -> None
+  crowd_shouts_hurrah() -> None
+  place_podium(window_name: str) -> None
+  start_oration() -> None
+}
+class "Window" as scene.Window {
+  floor : int
+  name : str
+}
+scene.Arthur --> scene.ArthurState : state
+scene.Crowd --> scene.CrowdState : state
+scene.Orator --> scene.OratorState : state
+scene.Scene --> scene.Room : room
+scene.Arthur --* scene.Scene : arthur
+scene.Crowd --* scene.Scene : crowd
+scene.Orator --* scene.Scene : orator
+scene.Podium --* scene.Scene : podium
+scene.Window --o scene.Scene : windows
+@enduml
